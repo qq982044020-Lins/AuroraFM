@@ -4,6 +4,7 @@ mobile/node_modules/
 
 # 构建产物
 release/
+dist/
 build/
 mobile/www/
 mobile/apps/*/platforms/

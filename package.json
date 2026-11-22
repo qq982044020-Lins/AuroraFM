@@ -6,12 +6,14 @@
   "author": "AuroraFM",
   "license": "MIT",
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder --win"
+    "build": "node build.mjs",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder --win"
   },
   "devDependencies": {
     "electron": "^33.0.0",
-    "electron-builder": "^25.0.0"
+    "electron-builder": "^25.0.0",
+    "esbuild": "^0.28.2"
   },
   "dependencies": {
     "ws": "^8.18.0"
@@ -28,7 +30,7 @@
       "index.html",
       "mini.html",
       "style.css",
-      "app.js",
+      "dist/**",
       "mqtt-client.js",
       "node_modules/ws/**"
     ],
