@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora FM · 全球免费电台</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📻</text></svg>">
+</head>
+<body>
+  <!-- 自定义标题栏 -->
+  <div class="titlebar" id="titlebar">
+    <div class="tb-left">
+      <span class="tb-logo">📡</span>
+      <span class="tb-title">Aurora FM</span>
+    </div>
+    <div class="tb-controls">
+      <button class="tb-btn" id="winMin" title="最小化">
+        <svg viewBox="0 0 10 10" width="10" height="10"><rect y="4.5" width="10" height="1" fill="currentColor"/></svg>
+      </button>
+      <button class="tb-btn" id="winMini" title="悬浮球迷你模式（右上角半透明小球）">
+        <svg viewBox="0 0 14 14" width="14" height="14">
+          <rect x="1" y="3" width="12" height="9" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.1"/>
+          <circle cx="9.6" cy="6.4" r="2.7" fill="currentColor"/>
+        </svg>
+      </button>
+      <button class="tb-btn" id="winMax" title="最大化 / 还原">
+        <svg viewBox="0 0 10 10" width="10" height="10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+      </button>
+      <button class="tb-btn close" id="winClose" title="关闭">
+        <svg viewBox="0 0 10 10" width="10" height="10"><path d="M0.5 0.5 L9.5 9.5 M9.5 0.5 L0.5 9.5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 温度金句栏：积极短句轮播（多种随机动效） -->
+  <div class="quote-bar" id="quoteBar" title="点击换一句 · 有温度的话，每天陪着你">
+    <span class="quote-ico">✨</span>
+    <div class="quote-stage"><div class="quote-text" id="quoteText">愿你被这个世界温柔以待</div></div>
+    <button class="quote-next" id="quoteNext" title="换一句">⇆</button>
+  </div>
+
+  <!-- 背景光晕 -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="app">
+    <!-- 顶部搜索栏 -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">📡</div>
+        <div>
+          <h1>Aurora FM</h1>
+          <span class="brand-sub">全球免费电台 · Radio Browser</span>
+        </div>
+      </div>
+      <div class="search-box">
+        <select id="searchMode" title="搜索维度">
+          <option value="name">电台名</option>
+          <option value="country">国家/地区</option>
+          <option value="state">省/州</option>
+          <option value="language">语言</option>
+          <option value="tag">标签</option>
+        </select>
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="搜索电台名称 / 标签 / 国家..." autocomplete="off" list="searchHints">
+        <datalist id="searchHints"></datalist>
+        <button id="searchBtn" class="btn-search">搜索</button>
+      </div>
+      <!-- 地方电台快捷入口 -->
+      <div class="quick-chips" id="quickChips">
+        <span class="chips-label">地方台:</span>
+        <button class="chip" data-mode="name" data-value="北京">北京</button>
+        <button class="chip" data-mode="name" data-value="上海">上海</button>
+        <button class="chip" data-mode="name" data-value="广东">广东</button>
+        <button class="chip" data-mode="name" data-value="深圳">深圳</button>
+        <button class="chip" data-mode="name" data-value="四川">四川</button>
+        <button class="chip" data-mode="name" data-value="浙江">浙江</button>
+        <button class="chip" data-mode="name" data-value="湖南">湖南</button>
+        <button class="chip" data-mode="name" data-value="山东">山东</button>
+        <button class="chip" data-mode="name" data-value="福建">福建</button>
+        <button class="chip" data-mode="language" data-value="chinese">普通话</button>
+        <button class="chip" data-mode="language" data-value="cantonese">粤语</button>
+        <button class="chip chip-bili" data-bili="1">📺 B站电台</button>
+        <button class="chip chip-vodfav" data-vodfav="1">⭐ 点播收藏</button>
+        <button class="chip" data-mode="country" data-value="China">🇨🇳 中国全部</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- 左侧：电台列表 -->
+      <aside class="station-panel">
+        <div class="panel-head">
+          <div class="filter-tabs">
+            <button class="tab active" data-filter="popular">热门</button>
+            <button class="tab" data-filter="chinese">华语</button>
+            <button class="tab" data-filter="music">音乐</button>
+            <button class="tab" data-filter="news">新闻</button>
+          </div>
+          <span id="stationCount" class="count">—</span>
+        </div>
+        <div id="stationList" class="station-list">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+        <button id="moreBtn" class="btn-more hidden">加载更多</button>
+      </aside>
+
+      <!-- 右侧：播放器 -->
+      <main class="player-panel">
+        <div class="now-playing">
+          <div class="artwork" id="artwork">
+            <img id="artImg" src="" alt="" onerror="this.style.display='none'">
+            <div class="art-fallback">📻</div>
+            <div class="art-glow"></div>
+          </div>
+
+          <div class="meta">
+            <div class="live-badge"><span class="dot"></span>LIVE</div>
+            <h2 id="stationName">选择一个电台开始收听</h2>
+            <div id="stationTags" class="tags">
+              <span class="tag">全球 50000+ 免费电台</span>
+            </div>
+            <div class="stats">
+              <span id="stationCountry">🌍 等待连接</span>
+              <span id="stationBitrate">✨ Aurora FM</span>
+              <span id="roomCount" class="room-count hidden" title="点击查看 / 设置联机频道">👥 在线 1 人</span>
+            </div>
+          </div>
+
+          <!-- 频谱可视化（Canvas） -->
+          <canvas id="vizCanvas" class="visualizer"></canvas>
+        </div>
+
+        <!-- 控制区 -->
+        <div class="controls">
+          <!-- 点播进度条（B站节目等非实时内容显示） -->
+          <div class="ctrl-row prog-row hidden" id="progRow">
+            <span id="progCur" class="prog-time">0:00</span>
+            <input id="progBar" class="prog-bar" type="range" min="0" max="1000" value="0" step="1">
+            <span id="progDur" class="prog-time">--:--</span>
+          </div>
+
+          <div class="ctrl-row main-controls">
+            <button class="ctrl-btn small" id="prevBtn" title="上一台">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6L18 6v12z"/></svg>
+            </button>
+            <button class="ctrl-btn play" id="playBtn" title="播放 / 暂停">
+              <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor" class="hidden"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            </button>
+            <button class="ctrl-btn small" id="nextBtn" title="下一台">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+            </button>
+          </div>
+
+          <div class="ctrl-row side-controls">
+            <button class="pill" id="autoBtn" title="自动轮播电台">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 01-4 4H3"/></svg>
+              <span id="autoLabel">自动轮播</span>
+              <select id="autoInterval" title="轮播间隔">
+                <option value="120">2分钟</option>
+                <option value="300">5分钟</option>
+                <option value="600">10分钟</option>
+              </select>
+            </button>
+            <button class="pill" id="favBtn" title="收藏当前电台">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 10-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 000-7.8z"/></svg>
+              <span id="favLabel">收藏</span>
+            </button>
+            <button class="pill" id="blindBtn" title="随机飞往全球某个电台">
+              🎲 <span>盲盒</span>
+            </button>
+            <button class="pill" id="passportBtn" title="收听统计与成就徽章">
+              📖 <span>护照</span>
+            </button>
+            <button class="pill" id="historyBtn" title="播放历史（最近 50 条）">
+              🕘 <span>历史</span>
+            </button>
+            <button class="pill" id="fsBtn" title="全屏屏保模式（快捷键 F）">
+              ⛶ <span>全屏</span>
+            </button>
+            <button class="pill" id="sleepBtn" title="睡眠定时器：倒计时结束后音量渐弱并暂停">
+              😴 <span id="sleepLabel">助眠</span>
+              <select id="sleepInterval">
+                <option value="0">关闭</option>
+                <option value="15">15分钟</option>
+                <option value="30">30分钟</option>
+                <option value="60">60分钟</option>
+              </select>
+            </button>
+          </div>
+
+          <div class="volume-row">
+            <button class="mute-btn" id="muteBtn" title="静音">
+              <svg id="iconVol" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.06A4.5 4.5 0 0016.5 12z"/></svg>
+              <svg id="iconMute" viewBox="0 0 24 24" fill="currentColor" class="hidden"><path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zM19 12c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.8 8.8 0 0021 12a8.8 8.8 0 00-7-8.59v2.06A6.8 6.8 0 0119 12zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25A6.8 6.8 0 0114 18.7v2.06c1.13-.26 2.17-.75 3.06-1.42L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
+            <input type="range" id="volumeSlider" min="0" max="100" value="80">
+            <span id="volumeText" class="vol-text">80%</span>
+          </div>
+
+          <!-- 弹幕输入行 -->
+          <div class="danmaku-row">
+            <span class="dm-nick" id="dmNick" title="你的江湖昵称（每次启动随机，点我可换一个）">侠客</span>
+            <input id="danmakuInput" type="text" maxlength="60" placeholder="发条弹幕，和正在听这台的听友过招..." autocomplete="off">
+            <button id="danmakuSend" class="dm-send">发送</button>
+          </div>
+
+          <div id="statusBar" class="status-bar"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 全屏屏保模式 -->
+  <div id="fsOverlay" class="fs-overlay hidden">
+    <button class="fs-exit" id="fsExit">✕ 退出全屏（Esc）</button>
+    <div class="fs-clock" id="fsClock">--:--</div>
+    <div class="fs-date" id="fsDate"></div>
+    <div class="fs-meta">
+      <div class="fs-name" id="fsName"></div>
+      <div class="fs-info" id="fsInfo"></div>
+      <div class="fs-tags" id="fsTags"></div>
+    </div>
+    <div class="fs-mode" id="fsModeLabel"></div>
+    <canvas id="fsCanvas" class="fs-canvas"></canvas>
+    <div class="fs-controls">
+      <button class="ctrl-btn small" id="fsPrev" title="上一台">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6L18 6v12z"/></svg>
+      </button>
+      <button class="ctrl-btn play" id="fsPlay" title="播放 / 暂停">
+        <svg id="fsIconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="fsIconPause" viewBox="0 0 24 24" fill="currentColor" class="hidden"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+      </button>
+      <button class="ctrl-btn small" id="fsNext" title="下一台">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 盲盒抽台动画 -->
+  <div id="blindOverlay" class="overlay hidden">
+    <div class="blind-card">
+      <div class="blind-title">🎲 电台盲盒</div>
+      <div class="blind-plane">✈️</div>
+      <div id="blindRoll" class="blind-roll">正在起飞，随机搜索全球电台...</div>
+      <div id="blindResult" class="blind-result hidden">
+        <div class="blind-flag" id="blindFlag">🌐</div>
+        <div class="blind-name" id="blindName"></div>
+        <div class="blind-country" id="blindCountry"></div>
+        <button class="btn-search" id="blindGo">立即收听</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 电台护照 -->
+  <div id="passportOverlay" class="overlay hidden">
+    <div class="passport-card">
+      <div class="passport-title">📖 电台护照</div>
+      <div class="passport-stats" id="passportStats"></div>
+      <div class="badges" id="badgeGrid"></div>
+      <button class="btn-search" id="passportClose">关闭</button>
+    </div>
+  </div>
+
+  <!-- 联机频道设置（房间号 / 服务器） -->
+  <div id="roomPanel" class="room-panel hidden">
+    <div class="room-panel-head">
+      <span>📡 联机频道设置</span>
+      <button id="roomPanelClose" class="room-panel-close">✕</button>
+    </div>
+    <div class="room-panel-body">
+      <label>房间号（相同的房间号才能互相看到）</label>
+      <input id="roomGroupInput" type="text" maxlength="24" placeholder="留空 = 公共大厅" autocomplete="off">
+      <label>中继服务器（可选）</label>
+      <input id="roomServerInput" type="text" maxlength="120" placeholder="留空 = 公共云端中继（跨网络）" autocomplete="off">
+      <p class="room-panel-tip">
+        默认使用公共云端中继：不同城市、不同网络的用户，只要收听<b>同一个电台</b>并处于<b>同一房间号</b>，即可看到彼此在线人数、互发弹幕。<br>
+        也可填自建服务 <code>ws://主机IP:37990</code>（仅局域网）或 <code>wss://你的域名/mqtt</code>。
+        <span id="roomLanHint" class="room-lan-hint"></span>
+      </p>
+      <div class="room-panel-actions">
+        <button id="roomPanelSave" class="dm-send">保存并重连</button>
+        <button id="roomPanelReset" class="room-reset">恢复默认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 哔哩哔哩电台：搜索博主视频，仅播放音频 -->
+  <div id="biliPanel" class="bili-panel hidden">
+    <div class="bili-panel-head">
+      <span id="biliPanelTitle">📺 B站电台 · 搜视频听音频</span>
+      <button id="biliPanelClose" class="room-panel-close">✕</button>
+    </div>
+    <div class="bili-search-row">
+      <div class="bili-mode-seg">
+        <button id="biliModeVideo" class="bili-mode-btn on">🎵 搜视频</button>
+        <button id="biliModeAuthor" class="bili-mode-btn">👤 搜博主</button>
+        <button id="biliModePod" class="bili-mode-btn">🎙 播客</button>
+        <span class="bili-mode-sep"></span>
+        <button id="biliSortDefault" class="bili-mode-btn on" title="按相关度排序">🔥 综合</button>
+        <button id="biliSortNew" class="bili-mode-btn" title="按发布时间从新到旧排序">🕐 最新</button>
+      </div>
+      <input id="biliSearchInput" type="text" maxlength="60" placeholder="输入关键词搜索 B 站视频，如：周杰伦、相声、白噪音..." autocomplete="off">
+      <button id="biliSearchBtn" class="dm-send">搜索</button>
+    </div>
+    <!-- 搜索历史：最近 5 条，点击即搜 -->
+    <div class="bili-hist-row hidden" id="biliHistRow">
+      <span class="bili-cat-label">🕘 最近</span>
+      <div class="bili-hist-chips" id="biliHistChips"></div>
+      <button id="biliHistClear" class="bili-hist-clear" title="清空搜索历史">✕</button>
+    </div>
+    <!-- 分类推荐子标签栏（搜视频/搜博主/播客 通用，可拖动排序） -->
+    <div class="bili-cat-row" id="biliCatRow">
+      <span class="bili-cat-label">🔥 分类</span>
+      <div class="bili-cat-chips" id="biliCatChips">
+        <button class="bili-cat" data-cat="tech">💻 科技</button>
+        <button class="bili-cat" data-cat="news">📰 新闻</button>
+        <button class="bili-cat" data-cat="philosophy">🤔 哲学</button>
+        <button class="bili-cat" data-cat="fun">🎈 有趣</button>
+        <button class="bili-cat" data-cat="comedy">🎭 相声小品</button>
+        <button class="bili-cat" data-cat="history">📜 历史</button>
+        <button class="bili-cat" data-cat="music">🎵 音乐</button>
+        <button class="bili-cat" data-cat="sleep">🌙 助眠</button>
+        <button class="bili-cat" data-cat="humanity">📖 人文</button>
+        <!-- 3 个自定义快捷分类槽位由 JS 渲染（localStorage 持久化） -->
+      </div>
+    </div>
+    <!-- 点播置顶栏：最多 5 个常听节目，点击直接播放，无需再搜索 -->
+    <div class="vod-pinbar" id="vodPinbar">
+      <span class="vod-pinbar-label" title="最多置顶 5 个常听节目">📌 置顶</span>
+      <div class="vod-pinbar-slots" id="vodPinSlots"></div>
+      <button class="vod-fav-toggle" id="vodFavOpen" title="打开点播收藏夹">⭐ 收藏夹 <i id="vodFavCount">0</i></button>
+    </div>
+    <div id="biliAuthors" class="bili-authors hidden"></div>
+    <div id="biliResults" class="bili-results">
+      <div class="bili-empty">输入关键词，搜索任意 B 站视频 / 博主的节目，点击即可只听音频 🎧</div>
+    </div>
+    <div id="biliFooter" class="bili-footer hidden">
+      <div class="bili-now">
+        <img id="biliNowPic" class="bili-now-pic" src="" alt="" referrerpolicy="no-referrer">
+        <div class="bili-now-info">
+          <div id="biliNowTitle" class="bili-now-title"></div>
+          <div id="biliNowAuthor" class="bili-now-author"></div>
+        </div>
+        <button id="biliPrevBtn" class="bili-mode-btn bili-skip-btn" title="上一首（上一P / 上一个节目）">⏮</button>
+        <button id="biliNextBtn" class="bili-mode-btn bili-skip-btn" title="下一首（下一P / 下一个节目）">⏭</button>
+        <select id="biliPageSel" class="bili-page-sel hidden" title="选择分P"></select>
+        <button id="biliAutoBtn" class="bili-mode-btn bili-auto-btn on" title="播放结束后自动播放列表里的下一个节目">🔁 连播</button>
+        <button id="biliFavCurBtn" class="bili-mode-btn bili-skip-btn" title="收藏当前播放的节目">☆</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 播放历史 -->
+  <div id="historyPanel" class="room-panel history-panel hidden">
+    <div class="room-panel-head">
+      <span>🕘 播放历史</span>
+      <button id="historyClose" class="room-panel-close">✕</button>
+    </div>
+    <div id="historyList" class="history-list"></div>
+    <div class="history-foot">
+      <button id="historyClear" class="dm-send">清空历史</button>
+    </div>
+  </div>
+
+  <!-- 点播收藏夹（B站视频 / 播客节目 / 播客单集） -->
+  <div id="vodFavPanel" class="room-panel vod-fav-panel hidden">
+    <div class="room-panel-head">
+      <span>⭐ 点播收藏夹</span>
+      <button id="vodFavClose" class="room-panel-close">✕</button>
+    </div>
+    <div id="vodFavList" class="history-list"></div>
+    <div class="history-foot">
+      <span class="vod-fav-tip">点条目播放 · 📌 置顶（最多 5 个）· 🗑 删除</span>
+    </div>
+  </div>
+
+  <!-- 弹幕层（漂浮于所有界面之上，包括全屏屏保） -->
+  <div id="danmakuLayer" class="danmaku-layer"></div>
+
+  <audio id="audio" preload="auto"></audio>
+  <script src="mqtt-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

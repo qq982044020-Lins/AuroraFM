@@ -1,0 +1,63 @@
+{
+  "name": "aurora-fm",
+  "version": "1.0.0",
+  "description": "Aurora FM - 全球免费电台客户端",
+  "main": "main.js",
+  "author": "AuroraFM",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "build": {
+    "appId": "com.aurora.fm",
+    "productName": "AuroraFM",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "mini.html",
+      "style.css",
+      "app.js",
+      "mqtt-client.js",
+      "node_modules/ws/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "portable": {
+      "artifactName": "AuroraFM-Portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "artifactName": "AuroraFM-Setup-${version}.exe",
+      "shortcutName": "Aurora FM"
+    }
+  }
+}

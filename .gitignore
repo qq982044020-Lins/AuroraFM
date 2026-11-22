@@ -1,0 +1,30 @@
+# 依赖
+node_modules/
+mobile/node_modules/
+
+# 构建产物
+release/
+build/
+mobile/www/
+mobile/apps/*/platforms/
+mobile/apps/*/plugins/
+mobile/platforms/
+mobile/plugins/
+*.apk
+*.aab
+
+# 日志与调试
+*.log
+build.log
+
+# 临时验证脚本（下划线开头）
+_*.js
+_*.png
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

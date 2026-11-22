@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Aurora FM 悬浮球</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    user-select: none; -webkit-user-select: none;
+  }
+  #ball {
+    position: absolute; inset: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 26%, rgba(158,128,255,0.95) 0%, rgba(88,108,238,0.86) 40%, rgba(24,32,78,0.92) 100%);
+    border: 1px solid rgba(255,255,255,0.42);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.35), 0 0 22px rgba(124,92,255,0.45);
+    display: grid; place-items: center;
+    cursor: grab; opacity: 0.82;
+    transition: opacity .2s, transform .2s;
+  }
+  #ball:hover { opacity: 1; transform: scale(1.06); }
+  #ball.dragging { cursor: grabbing; }
+  #ring {
+    position: absolute; inset: 1px; border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: rgba(255,255,255,0.9);
+    border-right-color: rgba(255,255,255,0.22);
+    animation: spin 3.2s linear infinite;
+    pointer-events: none;
+  }
+  body.paused #ring { animation-play-state: paused; opacity: .3; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #glyph {
+    font-size: 32px; line-height: 1;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    animation: bob 2.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  body.paused #glyph { animation-play-state: paused; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  #state {
+    position: absolute; right: 13px; bottom: 13px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #4ade80; border: 2px solid rgba(255,255,255,0.85);
+    box-shadow: 0 0 8px #4ade80; pointer-events: none;
+  }
+  body.paused #state { background: #94a3b8; box-shadow: none; }
+  #restore {
+    position: absolute; left: 7px; top: 7px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,0.38); color: #fff;
+    font-size: 12px; display: grid; place-items: center;
+    cursor: pointer; opacity: 0; transition: opacity .2s;
+  }
+  #ball:hover #restore { opacity: 1; }
+  #restore:hover { background: rgba(124,92,255,0.95); }
+  #tip {
+    position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%);
+    max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 10px; color: #fff; background: rgba(10,14,28,0.88);
+    border: 1px solid rgba(124,92,255,0.5); border-radius: 999px;
+    padding: 2px 9px; opacity: 0; transition: opacity .2s; pointer-events: none;
+  }
+  #ball:hover ~ #tip { opacity: 1; }
+</style>
+</head>
+<body>
+  <div id="ball" title="单击 播放/暂停 · 双击 还原主窗口 · 右键 菜单 · 拖动 移动">
+    <div id="ring"></div>
+    <div id="glyph">📡</div>
+    <div id="state"></div>
+    <div id="restore" title="还原主窗口">⤢</div>
+  </div>
+  <div id="tip">Aurora FM</div>
+  <script>
+    const api = window.aurora;
+    const ball = document.getElementById("ball");
+    const tip = document.getElementById("tip");
+    document.body.setAttribute("data-mini-boot", "1");
+    let dragging = false, moved = false, lastX = 0, lastY = 0;
+
+    // 主动查询播放状态（请求-响应，不依赖消息推送时序），并定时轮询保持同步
+    function applyInfo(info) {
+      if (!info) return;
+      window.__miniInfoGot = info;
+      const name = info.title || "Aurora FM";
+      tip.textContent = name;
+      ball.title = name + "\n单击 播放/暂停 · 双击 还原主窗口 · 右键 菜单 · 拖动 移动";
+      document.body.classList.toggle("paused", !info.playing);
+    }
+    function refreshInfo() {
+      if (api && api.miniGetInfo) {
+        aurora.miniGetInfo().then(applyInfo).catch(() => {});
+      }
+    }
+    refreshInfo();
+    setInterval(refreshInfo, 800);
+    // 主窗口推送仍兼容（若当前 Electron 版本回调可用则即时更新）
+    if (api && api.onMiniInfo) api.onMiniInfo(applyInfo);
+
+    ball.addEventListener("mousedown", (e) => {
+      if (e.button !== 0 || e.target.closest("#restore")) return;
+      dragging = true; moved = false;
+      lastX = e.screenX; lastY = e.screenY;
+      ball.classList.add("dragging");
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      const dx = e.screenX - lastX, dy = e.screenY - lastY;
+      if (!dx && !dy) return;
+      moved = true;
+      lastX = e.screenX; lastY = e.screenY;
+      if (api && api.miniDrag) api.miniDrag(dx, dy);
+    });
+    window.addEventListener("mouseup", () => {
+      dragging = false;
+      ball.classList.remove("dragging");
+    });
+    let clickTimer = null;
+    ball.addEventListener("click", (e) => {
+      if (e.target.closest("#restore") || moved) return;
+      // 延迟触发单击（播放/暂停），给双击还原留出识别窗口，避免双击时误切换两次
+      if (clickTimer) return;
+      clickTimer = setTimeout(() => {
+        clickTimer = null;
+        if (api && api.miniCmd) api.miniCmd("togglePlay");
+      }, 260);
+    });
+    ball.addEventListener("dblclick", (e) => {
+      if (e.target.closest("#restore")) return;
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }   // 取消误触的单击
+      if (api && api.miniRestore) api.miniRestore();
+    });
+    document.getElementById("restore").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (api && api.miniRestore) api.miniRestore();
+    });
+    ball.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      if (api && api.miniMenu) api.miniMenu();
+    });
+  </script>
+</body>
+</html>
