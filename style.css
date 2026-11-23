@@ -1402,6 +1402,7 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   align-items: center;
   justify-content: center;
   gap: 14px;
+  overflow: hidden;
   animation: fadeIn 0.4s ease;
 }
 .fs-exit {
@@ -1418,6 +1419,51 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   transition: all 0.2s;
 }
 .fs-exit:hover { color: var(--text); border-color: rgba(124, 92, 255, 0.55); }
+
+/* ---------- 全屏屏保：缓慢呼吸的主题色光晕 ----------
+ * 两层不同周期（28s / 37s）的低透明度主题色光斑缓慢漂移 + 明暗呼吸，
+ * 叠加后几乎不重复，让时钟/频谱之外的周围区域持续微变，避免长时间静态烧屏。
+ * 只用 transform / opacity（GPU 加速），几乎不耗性能；色相均取主题色系，色差极小。
+ */
+.fs-overlay::before,
+.fs-overlay::after {
+  content: "";
+  position: absolute;
+  inset: -25%;                 /* 放大范围，光斑移动时边缘不会露白 */
+  z-index: 0;
+  pointer-events: none;        /* 不挡住退出按钮 / 画布点击 */
+  will-change: transform, opacity;
+}
+.fs-overlay::before {
+  background:
+    radial-gradient(ellipse 42% 48% at 24% 28%, rgba(124, 92, 255, 0.20), transparent 68%),
+    radial-gradient(ellipse 46% 42% at 78% 70%, rgba(56, 189, 248, 0.13), transparent 70%);
+  animation: fsBreathe 28s ease-in-out infinite alternate;
+}
+.fs-overlay::after {
+  background:
+    radial-gradient(ellipse 38% 44% at 72% 22%, rgba(167, 139, 250, 0.15), transparent 70%),
+    radial-gradient(ellipse 44% 48% at 18% 78%, rgba(124, 92, 255, 0.14), transparent 70%);
+  animation: fsBreatheAlt 37s ease-in-out infinite alternate;
+}
+/* 内容浮于光晕之上；退出按钮保持右上角绝对定位 */
+.fs-overlay > * { position: relative; z-index: 1; }
+.fs-overlay > .fs-exit { position: absolute; z-index: 2; }
+
+@keyframes fsBreathe {
+  0%   { transform: translate3d(0, 0, 0) scale(1);      opacity: 0.65; }
+  100% { transform: translate3d(5%, 4%, 0) scale(1.16); opacity: 1; }
+}
+@keyframes fsBreatheAlt {
+  0%   { transform: translate3d(0, 0, 0) scale(1.14);      opacity: 1; }
+  100% { transform: translate3d(-6%, -5%, 0) scale(1);     opacity: 0.5; }
+}
+
+/* 尊重系统「减少动态效果」偏好：保留呼吸但周期拉长、幅度减小 */
+@media (prefers-reduced-motion: reduce) {
+  .fs-overlay::before { animation-duration: 60s; }
+  .fs-overlay::after  { animation-duration: 80s; }
+}
 
 .fs-clock {
   font-size: clamp(80px, 16vw, 170px);
