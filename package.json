@@ -9,6 +9,8 @@
     "build": "node build.mjs",
     "start": "npm run build && electron .",
     "dist": "npm run build && electron-builder --win",
+    "icons": "bash scripts/generate-electron-icons.sh",
+    "dist:mac": "npm run build && npm run icons && electron-builder --mac",
     "ios:unsigned": "bash build-ios-unsigned-ipa.sh",
     "ios:sim": "bash build-ios-simulator.sh"
   },
@@ -25,6 +27,12 @@
   "build": {
     "appId": "com.aurora.fm",
     "productName": "AuroraFM",
+    "mac": {
+      "target": [{ "target": "dmg", "arch": ["arm64"] }],
+      "icon": "build/icon.icns",
+      "identity": null,
+      "category": "public.app-category.music"
+    },
     "directories": {
       "output": "release"
     },

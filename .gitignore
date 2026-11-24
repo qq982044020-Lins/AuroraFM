@@ -5,8 +5,10 @@ mobile/node_modules/
 # 构建产物
 release/
 dist/
-build/*
-!build/icon.png
+**/build/
+!/build/
+/build/*
+!/build/icon.png
 mobile/www/
 mobile/apps/*/platforms/
 mobile/apps/*/plugins/
