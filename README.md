@@ -57,9 +57,17 @@ npm start         # 自动打包 src/ 并启动 Electron
 
 ## 打包安装包（Windows）
 
+最简单的方式：直接双击项目根目录的 **`Pack.bat`**，它会自动完成
+「清理残留 → 打包 src → 生成安装包 + 绿色包 → 清理临时文件」，全程有中文提示。
+
+等效的命令行方式：
+
 ```bash
 npm run dist      # 自动打包 src/ 并生成 release/ 下的 exe
 ```
+
+> 打包产物在 `release/`：绿色包 `AuroraFM-Portable.exe`、安装包 `AuroraFM-Setup-1.0.0.exe`。
+> 打包前请先关闭正在运行的 Aurora FM，否则旧进程会锁住文件导致失败。
 
 ## 浏览器 / 纯静态预览
 

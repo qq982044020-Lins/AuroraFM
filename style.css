@@ -1420,49 +1420,50 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 }
 .fs-exit:hover { color: var(--text); border-color: rgba(124, 92, 255, 0.55); }
 
-/* ---------- 全屏屏保：缓慢呼吸的主题色光晕 ----------
- * 两层不同周期（28s / 37s）的低透明度主题色光斑缓慢漂移 + 明暗呼吸，
- * 叠加后几乎不重复，让时钟/频谱之外的周围区域持续微变，避免长时间静态烧屏。
- * 只用 transform / opacity（GPU 加速），几乎不耗性能；色相均取主题色系，色差极小。
+/* ---------- 全屏屏保：整体同步的呼吸光晕 ----------
+ * 两层大面积、高度重叠的紫→青融合渐变（以主题紫为主，青只作柔和过渡，不成独立色块），
+ * 同周期同相位一起明暗呼吸，屏幕周围整体同时变亮变暗，不会局部各自闪。
+ * 明暗幅度 0.32→1，周期 12s，明显但不刺眼；像素持续变化以防烧屏。
+ * 只用 transform / opacity（GPU 加速），几乎不耗性能。
  */
 .fs-overlay::before,
 .fs-overlay::after {
   content: "";
   position: absolute;
-  inset: -25%;                 /* 放大范围，光斑移动时边缘不会露白 */
+  inset: -20%;                 /* 放大范围，缩放时边缘不露底 */
   z-index: 0;
   pointer-events: none;        /* 不挡住退出按钮 / 画布点击 */
   will-change: transform, opacity;
+  animation: fsBreathe 7s ease-in-out infinite;
 }
+/* 主层：大面积融合渐变，中心紫 → 外缘淡青，整体铺开 */
 .fs-overlay::before {
-  background:
-    radial-gradient(ellipse 42% 48% at 24% 28%, rgba(124, 92, 255, 0.20), transparent 68%),
-    radial-gradient(ellipse 46% 42% at 78% 70%, rgba(56, 189, 248, 0.13), transparent 70%);
-  animation: fsBreathe 28s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse 72% 64% at 50% 50%,
+    rgba(124, 92, 255, 0.40) 0%,
+    rgba(108, 110, 240, 0.26) 40%,
+    rgba(56, 189, 248, 0.12) 72%,
+    transparent 100%);
 }
+/* 叠加层：中心柔光增加层次，与主层同步呼吸 */
 .fs-overlay::after {
-  background:
-    radial-gradient(ellipse 38% 44% at 72% 22%, rgba(167, 139, 250, 0.15), transparent 70%),
-    radial-gradient(ellipse 44% 48% at 18% 78%, rgba(124, 92, 255, 0.14), transparent 70%);
-  animation: fsBreatheAlt 37s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse 58% 52% at 50% 44%,
+    rgba(167, 139, 250, 0.26) 0%,
+    rgba(124, 92, 255, 0.10) 55%,
+    transparent 100%);
 }
 /* 内容浮于光晕之上；退出按钮保持右上角绝对定位 */
 .fs-overlay > * { position: relative; z-index: 1; }
 .fs-overlay > .fs-exit { position: absolute; z-index: 2; }
 
 @keyframes fsBreathe {
-  0%   { transform: translate3d(0, 0, 0) scale(1);      opacity: 0.65; }
-  100% { transform: translate3d(5%, 4%, 0) scale(1.16); opacity: 1; }
-}
-@keyframes fsBreatheAlt {
-  0%   { transform: translate3d(0, 0, 0) scale(1.14);      opacity: 1; }
-  100% { transform: translate3d(-6%, -5%, 0) scale(1);     opacity: 0.5; }
+  0%, 100% { transform: scale(1);    opacity: 0.32; }
+  50%      { transform: scale(1.10); opacity: 1; }
 }
 
-/* 尊重系统「减少动态效果」偏好：保留呼吸但周期拉长、幅度减小 */
+/* 尊重系统「减少动态效果」偏好：保留呼吸但周期拉长 */
 @media (prefers-reduced-motion: reduce) {
-  .fs-overlay::before { animation-duration: 60s; }
-  .fs-overlay::after  { animation-duration: 80s; }
+  .fs-overlay::before,
+  .fs-overlay::after { animation-duration: 18s; }
 }
 
 .fs-clock {
