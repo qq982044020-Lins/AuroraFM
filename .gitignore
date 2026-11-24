@@ -13,6 +13,11 @@ mobile/platforms/
 mobile/plugins/
 *.apk
 *.aab
+*.ipa
+
+# 签名材料（切勿提交）
+*.mobileprovision
+*.p12
 
 # 日志与调试
 *.log

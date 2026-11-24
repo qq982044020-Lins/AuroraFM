@@ -15,20 +15,63 @@ function updateFSMeta(s) {
     .map((t) => `<span class="tag">${escapeHtml(t.trim())}</span>`).join("");
 }
 
+const isNativeCapacitor = () =>
+  !!(window.Capacitor &&
+    (typeof window.Capacitor.isNativePlatform === "function"
+      ? window.Capacitor.isNativePlatform()
+      : window.Capacitor.isNative));
+
+const isTouchDevice =
+  (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
+  navigator.maxTouchPoints > 0;
+
+// 触屏设备不显示键盘快捷键提示；桌面端保留 Esc 说明
+els.fsExit.textContent = isTouchDevice ? "✕ 退出全屏" : "✕ 退出全屏（Esc）";
+
 function enterFS() {
   fsActive = true;
   els.fsOverlay.classList.remove("hidden");
   updateFSMeta(state.curStation);
-  if (window.aurora) window.aurora.setFullscreen(true);
-  else document.documentElement.requestFullscreen?.().catch(() => {});
+  if (window.aurora) {
+    window.aurora.setFullscreen(true);
+  } else if (!isNativeCapacitor()) {
+    // Capacitor 内只用 CSS 覆盖层，避免触发 iOS 原生全屏横幅与退出白边
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
 }
 
 function exitFS() {
   fsActive = false;
   els.fsOverlay.classList.add("hidden");
-  if (window.aurora) window.aurora.setFullscreen(false);
-  else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  if (window.aurora) {
+    window.aurora.setFullscreen(false);
+  } else if (!isNativeCapacitor() && document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
 }
+
+document.addEventListener("fullscreenchange", () => {
+  if (fsActive && !document.fullscreenElement && !window.aurora && !isNativeCapacitor()) exitFS();
+});
+
+// 触屏下滑退出：与 iOS 全屏手势一致，桌面仍可用右上角按钮或 Esc
+let fsTouchStartY = null;
+let fsTouchStartX = null;
+els.fsOverlay.addEventListener("touchstart", (e) => {
+  if (!fsActive || e.target.closest("button, input, select, a")) return;
+  const t = e.changedTouches[0];
+  fsTouchStartY = t.clientY;
+  fsTouchStartX = t.clientX;
+}, { passive: true });
+els.fsOverlay.addEventListener("touchend", (e) => {
+  if (fsTouchStartY === null || !fsActive) return;
+  const t = e.changedTouches[0];
+  const dy = t.clientY - fsTouchStartY;
+  const dx = Math.abs(t.clientX - fsTouchStartX);
+  fsTouchStartY = null;
+  fsTouchStartX = null;
+  if (dy > 80 && dx < 60) exitFS();
+}, { passive: true });
 
 /* ---------- 自定义标题栏：窗口控制 ---------- */
 if (window.aurora) {

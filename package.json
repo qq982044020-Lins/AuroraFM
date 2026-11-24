@@ -8,11 +8,13 @@
   "scripts": {
     "build": "node build.mjs",
     "start": "npm run build && electron .",
-    "dist": "npm run build && electron-builder --win"
+    "dist": "npm run build && electron-builder --win",
+    "ios:unsigned": "bash build-ios-unsigned-ipa.sh",
+    "ios:sim": "bash build-ios-simulator.sh"
   },
   "devDependencies": {
-    "electron": "^33.0.0",
-    "electron-builder": "^25.0.0",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
     "esbuild": "^0.28.2"
   },
   "dependencies": {
@@ -61,5 +63,9 @@
       "artifactName": "AuroraFM-Setup-${version}.exe",
       "shortcutName": "Aurora FM"
     }
+  },
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.28.2": true
   }
 }

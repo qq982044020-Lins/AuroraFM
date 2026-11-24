@@ -12,14 +12,21 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html, body { height: 100%; }
+html, body { height: 100%; background: var(--bg); }
 
 body {
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
+  overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  height: 100dvh;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+           env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
 }
 
 /* ---------- 自定义标题栏 ---------- */
@@ -136,7 +143,8 @@ body {
 .app {
   position: relative;
   z-index: 1;
-  height: calc(100vh - 64px);
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   padding: 16px 26px 22px;
@@ -1397,6 +1405,8 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   inset: 0;
   z-index: 100;
   background: radial-gradient(ellipse at 50% 60%, #141a2e 0%, #0b0e17 65%);
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+           env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1407,8 +1417,8 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 }
 .fs-exit {
   position: absolute;
-  top: 22px;
-  right: 26px;
+  top: calc(22px + env(safe-area-inset-top, 0px));
+  right: calc(26px + env(safe-area-inset-right, 0px));
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-dim);
@@ -1541,11 +1551,27 @@ body.no-room .room-count { display: none !important; }
   .search-box { flex-wrap: wrap; width: 100%; }
   .search-box input { flex: 1; min-width: 120px; width: auto; }
   .quick-chips { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
-  .layout { grid-template-columns: 1fr; grid-template-rows: minmax(160px, 34vh) 1fr; }
-  .player-panel { padding: 16px; }
-  .visualizer { height: 110px; }
-  .side-controls { flex-wrap: wrap; }
+  .layout { grid-template-columns: 1fr; grid-template-rows: minmax(120px, 22vh) 1fr; }
+  .player-panel { padding: 10px; }
+  .now-playing { gap: 6px; }
+  .artwork { width: 64px; height: 64px; border-radius: 14px; }
+  .art-fallback { font-size: 28px; }
+  .meta h2 { font-size: 16px; }
+  .visualizer { height: 36px; }
+  .controls { gap: 6px; padding-top: 6px; }
+  .ctrl-btn.play { width: 56px; height: 56px; }
+  .ctrl-btn.small { width: 38px; height: 38px; }
+  .side-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+  .side-controls .pill { flex: 0 0 auto; padding: 4px 7px; font-size: 10px; }
+  .side-controls select { display: none; }
   .volume-row { flex-wrap: nowrap; }
+  .danmaku-row { display: none; }
   .dm-nick { display: none; }
   .fs-clock { font-size: clamp(60px, 22vw, 110px); }
   .fs-canvas { width: 100%; }
@@ -1670,3 +1696,105 @@ body.no-room .room-count { display: none !important; }
 .vod-fav-panel { z-index: 140; }
 /* 当前播放条的收藏按钮点亮 */
 .bili-skip-btn.on { color: #fcd34d; border-color: rgba(252, 211, 77, 0.55); background: rgba(252, 211, 77, 0.12); }
+
+/* ---------- 横屏矮屏：压缩顶部，播放区改为横向紧凑布局 ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  .titlebar { height: 26px; }
+  .quote-bar { height: 20px; }
+  .app { padding: 6px 10px 8px; gap: 6px; }
+
+  .topbar { flex-wrap: nowrap; align-items: center; gap: 10px; flex: 0 0 auto; }
+  .brand-icon { width: 30px; height: 30px; font-size: 16px; }
+  .brand h1 { font-size: 16px; }
+  .brand-sub { display: none; }
+  .search-box { flex: 1; min-width: 0; }
+  .search-box input { min-width: 0; width: auto; }
+  .quick-chips { display: none; }
+
+  .layout { grid-template-columns: minmax(160px, 26%) 1fr; grid-template-rows: 1fr; gap: 8px; }
+  .station-panel, .player-panel { min-height: 0; }
+  .player-panel { padding: 8px 12px; }
+  .panel-head { padding: 6px 8px; }
+  .station-list { padding: 4px; }
+
+  .now-playing {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+  }
+  .meta { flex: 1; min-width: 0; text-align: left; }
+  .meta h2 { font-size: 15px; text-align: left; }
+  .live-badge, .tags { display: none; }
+  .stats { margin-top: 4px; gap: 8px; font-size: 10px; }
+  .visualizer { width: 120px; height: 44px; margin: 0; flex: 0 0 auto; }
+
+  .controls { gap: 4px; padding-top: 4px; }
+  .main-controls { gap: 12px; }
+  .ctrl-btn.play { width: 44px; height: 44px; }
+  .ctrl-btn.small { width: 32px; height: 32px; }
+  .side-controls {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 4px;
+    padding-bottom: 0;
+  }
+  .side-controls .pill { flex: 0 0 auto; padding: 4px 7px; font-size: 10px; }
+  .side-controls select { display: none; }
+  .volume-row { flex-wrap: nowrap; }
+  .danmaku-row, .status-bar { display: none; }
+
+  .fs-overlay {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+    grid-template-rows: min-content min-content min-content;
+    grid-template-areas:
+      "clock canvas controls"
+      "date  canvas controls"
+      "meta  canvas controls";
+    align-content: center;
+    align-items: center;
+    justify-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding: calc(6px + env(safe-area-inset-top, 0px))
+             calc(8px + env(safe-area-inset-right, 0px))
+             calc(6px + env(safe-area-inset-bottom, 0px))
+             calc(8px + env(safe-area-inset-left, 0px));
+  }
+  .fs-overlay > * { position: relative; z-index: 1; min-width: 0; }
+  .fs-overlay > .fs-exit { position: absolute; z-index: 2; }
+  .fs-clock {
+    grid-area: clock;
+    font-size: clamp(36px, 9vh, 56px);
+    white-space: nowrap;
+    line-height: 1.05;
+  }
+  .fs-date { grid-area: date; font-size: 10px; letter-spacing: 1px; margin: 0; }
+  .fs-meta { grid-area: meta; margin: 0; text-align: left; max-width: 180px; }
+  .fs-name { font-size: 16px; max-width: 100%; }
+  .fs-info { font-size: 10px; margin-top: 3px; }
+  .fs-tags, .fs-mode { display: none; }
+  .fs-canvas { grid-area: canvas; width: 100%; height: min(46vh, 140px); }
+  .fs-controls {
+    grid-area: controls;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+  }
+  .fs-controls .ctrl-btn.small { width: 36px; height: 36px; }
+  .fs-controls .ctrl-btn.small svg { width: 18px; height: 18px; }
+  .fs-controls .ctrl-btn.play { width: 48px; height: 48px; }
+  .fs-controls .ctrl-btn.play svg { width: 24px; height: 24px; }
+  .fs-exit {
+    top: calc(6px + env(safe-area-inset-top, 0px));
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
