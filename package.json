@@ -18,6 +18,8 @@
     "esbuild": "^0.28.2"
   },
   "dependencies": {
+    "@capacitor/core": "^8.6.2",
+    "js-md5": "^0.11.0",
     "ws": "^8.18.0"
   },
   "build": {

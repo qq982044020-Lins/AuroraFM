@@ -1798,3 +1798,60 @@ body.no-room .room-count { display: none !important; }
     font-size: 11px;
   }
 }
+
+/* ---------- B站查询面板：手机窄屏与横屏矮屏适配 ---------- */
+@media (max-width: 520px), (orientation: landscape) and (max-height: 500px) {
+  .bili-panel {
+    width: min(520px, calc(100vw - 16px));
+    height: min(680px, calc(100vh - 16px));
+    border-radius: 14px;
+  }
+  .bili-panel-head { padding: 12px 14px 10px; font-size: 14px; }
+
+  .bili-search-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0 14px 10px;
+  }
+  .bili-mode-seg {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 5px;
+    padding-bottom: 3px;
+  }
+  .bili-mode-btn { flex: 0 0 auto; padding: 6px 9px; font-size: 11px; }
+  .bili-mode-sep { margin: 0; }
+  .bili-search-row input {
+    width: 100%;
+    flex: none;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .bili-search-row .dm-send { width: 100%; }
+
+  .bili-cat-row { padding: 0 14px 8px; gap: 8px; align-items: flex-start; }
+  .bili-cat-chips, .bili-hist-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+  .bili-cat { flex: 0 0 auto; padding: 4px 8px; font-size: 10.5px; }
+  .bili-cat-label { font-size: 10px; padding-top: 4px; }
+  .bili-hist-row { padding: 0 14px 8px; }
+  .bili-hist-chip { flex: 0 0 auto; max-width: 120px; }
+
+  .bili-results { padding: 0 10px 10px; }
+  .bili-item { gap: 8px; padding: 8px 6px; }
+  .bili-thumb { width: 78px; height: 46px; }
+  .bili-item-title { font-size: 12px; }
+  .bili-item-sub { font-size: 10.5px; }
+  .bili-item-play { font-size: 10.5px; padding: 3px 8px; }
+
+  .bili-footer { padding: 8px 10px; }
+  .bili-now { gap: 8px; }
+  .bili-now-pic { width: 56px; height: 34px; }
+  .bili-now-title { font-size: 11px; }
+  .bili-now-author { font-size: 10px; }
+  .bili-page-sel, .bili-skip-btn, .bili-auto-btn { font-size: 10px; padding: 4px 6px; }
+}

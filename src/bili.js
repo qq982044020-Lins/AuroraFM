@@ -4,6 +4,23 @@
  */
 
 import { els, state, audio, escapeHtml, fmtDur, fmtPlay, fmtDate, fmtAgo, setStatus, registry } from "./core.js";
+import { biliApi } from "./bili-api.js";
+
+const hasDesktopApi = () => !!(window.aurora && window.aurora.biliSearch);
+const apiSearch = (...args) =>
+  hasDesktopApi() ? window.aurora.biliSearch(...args) : biliApi.search(...args);
+const apiPodcastSearch = (kw) =>
+  window.aurora && window.aurora.podcastSearch
+    ? window.aurora.podcastSearch(kw)
+    : biliApi.podcastSearch(kw);
+const apiPodcastEpisodes = (...args) =>
+  window.aurora && window.aurora.podcastEpisodes
+    ? window.aurora.podcastEpisodes(...args)
+    : biliApi.podcastEpisodes(...args);
+const apiResolve = (...args) =>
+  window.aurora && window.aurora.biliResolve
+    ? window.aurora.biliResolve(...args)
+    : biliApi.resolve(...args);
 
 const bili = { keyword: "", page: 1, items: [], loading: false, current: null, mode: "video", authors: [], curAuthor: null, sort: "totalrank", auto: true, podResults: [], podEps: [], podView: "search" };
 const PAGE_COUNT = 20;
@@ -265,17 +282,20 @@ async function biliSearch(reset) {
   const kw = els.biliSearchInput.value.trim();
   if (!kw) { setStatus("请输入搜索关键词", "error"); return; }
   if (reset) pushBiliHistory(kw);
-  if (!window.aurora || !window.aurora.biliSearch) {
-    setStatus("当前环境不支持搜索（需桌面版）", "error");
+  if (!hasDesktopApi() && !biliApi.available) {
+    setStatus("当前环境不支持搜索", "error");
     return;
   }
   if (bili.mode === "podcast") {
-    if (!window.aurora.podcastSearch) { setStatus("当前环境不支持播客搜索（需桌面版）", "error"); return; }
+    if (!(window.aurora && window.aurora.podcastSearch) && !biliApi.available) {
+      setStatus("当前环境不支持播客搜索", "error");
+      return;
+    }
     if (bili.loading) return;
     bili.loading = true;
     renderBiliLoading();
     try {
-      const r = await window.aurora.podcastSearch(kw);
+      const r = await apiPodcastSearch(kw);
       bili.podResults = r.items || [];
       bili.podView = "search";
       renderBiliPodcast();
@@ -291,7 +311,7 @@ async function biliSearch(reset) {
   bili.loading = true;
   renderBiliLoading();
   try {
-    const r = await window.aurora.biliSearch(bili.keyword, bili.page, bili.mode, bili.sort);
+    const r = await apiSearch(bili.keyword, bili.page, bili.mode, bili.sort);
     if (r.mode === "author") {
       bili.authors = r.authors || [];
       bili.curAuthor = bili.authors.length ? bili.authors[0].author : null;
@@ -526,10 +546,13 @@ function removeVodFav(key) {
   setStatus("已从收藏夹删除");
 }
 async function loadAndPlayPod(p) {
-  if (!window.aurora || !window.aurora.podcastEpisodes) { setStatus("当前环境不支持播客（需桌面版）", "error"); return; }
+  if (!(window.aurora && window.aurora.podcastEpisodes) && !biliApi.available) {
+    setStatus("当前环境不支持播客", "error");
+    return;
+  }
   setStatus("正在打开收藏的播客…");
   try {
-    const r = await window.aurora.podcastEpisodes(p.feedUrl, p);
+    const r = await apiPodcastEpisodes(p.feedUrl, p);
     bili.podEps = r.episodes || [];
     if (!bili.podResults.some((x) => vodKeyOf("pod", x) === vodKeyOf("pod", p))) bili.podResults.unshift(p);
     bili.podView = "episodes";
@@ -610,10 +633,10 @@ els.biliResults.addEventListener("click", async (e) => {
   if (!item) return;
   if (item.dataset.kind === "pod") {
     const p = bili.podResults[+item.dataset.i];
-    if (!p || !window.aurora || !window.aurora.podcastEpisodes) return;
+    if (!p || (!(window.aurora && window.aurora.podcastEpisodes) && !biliApi.available)) return;
     setStatus("正在拉取播客单集…");
     try {
-      const r = await window.aurora.podcastEpisodes(p.feedUrl, p);
+      const r = await apiPodcastEpisodes(p.feedUrl, p);
       bili.podEps = r.episodes || [];
       bili.podView = "episodes";
       renderBiliPodcast();
@@ -681,12 +704,14 @@ async function playBili(item, page = 1) {
         duration: item.duration || 0,
         pages: [],
         page: 1,
-        stream: "bilaudio://play/?u=" + encodeURIComponent(item.enclosure),
+        stream: window.aurora && window.aurora.podcastEpisodes
+          ? "bilaudio://play/?u=" + encodeURIComponent(item.enclosure)
+          : item.enclosure,
       };
     } else {
-      if (!window.aurora || !window.aurora.biliResolve) return;
+      if (!(window.aurora && window.aurora.biliResolve) && !biliApi.available) return;
       setStatus("正在解析 B 站音频流…");
-      r = await window.aurora.biliResolve(item.bvid, page);
+      r = await apiResolve(item.bvid, page);
     }
     bili.current = { kind: isPod ? "podcast" : "bili", item, info: r };
     if (isPod) {
